@@ -5,6 +5,11 @@ class DataManager():
     """
     Handels database operations
     """
+    def create_user(self, name):
+        new_user = User(name=name)
+        db.session.add(new_user)
+        db.session.commit()
+
     def get_users(self):
         return User.query.all()
 
