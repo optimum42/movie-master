@@ -22,7 +22,7 @@
   <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-8">
     <form action="/users/{{ user.id }}/movies" method="GET" class="flex flex-col sm:flex-row gap-4 items-end sm:items-center">
       <div class="flex-grow w-full sm:w-auto">
-        <label for="search" class="block text-sm font-medium text-slate-700 mb-1">Search Catalog</label>
+        <label for="search" class="block text-sm font-medium text-slate-700 mb-1">Search Movie</label>
         <input type="text" name="search" id="search" placeholder="Search by Title..."
                value="{{ request.args.get('search', '') }}"
                class="w-full border border-slate-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
@@ -31,6 +31,7 @@
         <label for="sort" class="block text-sm font-medium text-slate-700 mb-1">Sort by</label>
         <select name="sort" id="sort" class="w-full border border-slate-300 rounded-md px-4 py-2 bg-white focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer">
           <option value="title" {% if request.args.get('sort') == 'title' %}selected{% endif %}>Movie Title</option>
+          <option value="rating" {% if request.args.get('sort') == 'rating' %}selected{% endif %}>Movie Rating</option>
         </select>
       </div>
       <div class="flex gap-2 w-full sm:w-auto">

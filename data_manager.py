@@ -21,15 +21,32 @@ class DataManager():
     def get_user_by_name(self, user_name):
         return User.query.filter_by(name=user_name).first()
 
-    def get_movies(self, user_id):
-        # Join Movies with the UserMovies table
-        # and filter by user_id
-        result = db.session.query(Movie, UserMovies.rating) \
-            .join(UserMovies, Movie.id == UserMovies.movie_id) \
-            .filter(UserMovies.user_id == user_id) \
-            .all()
+    def get_movies(self, user_id, search_query, sort_by):
+        """ Returns all user movies that match the search query """
 
-        return result
+        # Join Movies with the UserMovies table and filter by user_id
+        query = db.session.query(Movie, UserMovies.rating) \
+             .join(UserMovies, Movie.id == UserMovies.movie_id) \
+             .filter(UserMovies.user_id == user_id)
+
+        # filter by title if search query is not empty
+        if search_query:
+            query = query.filter(Movie.title.like("%" + search_query + "%"))
+
+        # # finally sort by the given option
+        if sort_by == "title":
+            query = query.order_by(Movie.title.asc())
+        elif sort_by == "rating":
+            query = query.order_by(UserMovies.rating.desc())
+
+        return query.all()
+
+        # result = db.session.query(Movie, UserMovies.rating) \
+        #     .join(UserMovies, Movie.id == UserMovies.movie_id) \
+        #     .filter(UserMovies.user_id == user_id) \
+        #     .all()
+        #
+        # return result
 
     def get_movie(self, movie_id):
         movie = Movie.query.get(movie_id)
