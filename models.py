@@ -19,7 +19,6 @@ class Movie(db.Model):
     poster = db.Column(db.String(100), nullable=True)
     rating = db.Column(db.Float, nullable=True)
     imdb_url = db.Column(db.String(100), nullable=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
 
 class UserMovies(db.Model):

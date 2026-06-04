@@ -1,79 +1,126 @@
 {% extends "base.html" %}
 
-{% block title %}My Library Catalog{% endblock %}
+{% block title %}Movies of {{ user.name }}{% endblock %}
+
+{% block nav_buttons %}
+  <form action="/users/{{ user.id }}/movies" method="POST" class="flex items-center gap-2">
+    <label for="title" class="sr-only">Movie Title</label>
+    <input type="text" id="title" name="title" placeholder="New Movie Title..." required
+           class="w-48 md:w-64 border-0 rounded-md px-3 py-1.5 text-sm text-slate-900 focus:ring-2 focus:ring-indigo-300 outline-none transition-all shadow-inner">
+
+    <button type="submit"
+            class="bg-indigo-800 hover:bg-indigo-900 text-white text-sm font-semibold py-1.5 px-4 rounded-md transition-colors shadow-sm whitespace-nowrap border border-indigo-700">
+      Add Movie
+    </button>
+  </form>
+{% endblock %}
 
 {% block content %}
 
-<div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-8">
-  <form action="/" method="GET" class="flex flex-col sm:flex-row gap-4 items-end sm:items-center">
-    <div class="flex-grow w-full sm:w-auto">
-      <label for="search" class="block text-sm font-medium text-slate-700 mb-1">Search Catalog</label>
-      <input type="text" name="search" id="search" placeholder="Title or Author..."
-             value="{{ request.args.get('search', '') }}"
-             class="w-full border border-slate-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
-    </div>
-    <div class="w-full sm:w-48">
-      <label for="sort" class="block text-sm font-medium text-slate-700 mb-1">Sort by</label>
-      <select name="sort" id="sort" class="w-full border border-slate-300 rounded-md px-4 py-2 bg-white focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer">
-        <option value="title" {% if request.args.get('sort') == 'title' %}selected{% endif %}>Movie Title</option>
-      </select>
-    </div>
-    <div class="flex gap-2 w-full sm:w-auto">
-      <button type="submit" class="bg-slate-800 hover:bg-slate-700 text-white px-6 py-2 rounded-md font-medium transition-colors w-full sm:w-auto shadow-sm">
-        Search
-      </button>
-      {% if request.args.get('search') or request.args.get('sort') %}
-        <a href="/" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-md font-medium transition-colors text-center w-full sm:w-auto">
-          Clear
-        </a>
-      {% endif %}
-    </div>
-  </form>
-</div>
+  <h2 class="text-3xl font-bold text-slate-900 mb-8 text-center">🎬 Movies of {{ user.name }}</h2>
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-  {% for movie in movies %}
-  <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex gap-5 transition-transform duration-200 hover:-translate-y-1 hover:shadow-md group">
-    <img src="https://covers.openlibrary.org/b/isbn/{{ movie.isbn }}-M.jpg"
-         alt="Cover of {{ movie.title }}"
-         class="w-24 h-36 object-cover rounded shadow-sm flex-shrink-0 bg-slate-100">
-    <div class="flex flex-col flex-grow">
-      <a href="/book/{{ movie.id }}" class="hover:underline">
-        <h3 class="text-lg font-bold text-slate-900 leading-tight mb-1">{{ movie.title }}</h3>
-      </a>
-      <div class="mt-auto flex flex-wrap gap-2">
-        <form action="/book/{{ movie.id }}/delete" method="POST" class="inline">
-          <button type="submit"
-                  class="text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1.5 rounded transition-colors"
-                  onclick="return confirm('Are you sure you want to delete this book?');">
-            Delete Book
-          </button>
-        </form>
-        <form action="/author/{{ movie.author_id }}/delete" method="POST" class="inline">
-          <button type="submit"
-                  class="text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 px-3 py-1.5 rounded transition-colors"
-                  onclick="return confirm('WARNING: This will permanently delete {{ movie.author.name }} AND ALL of their books. Proceed?');">
-            Delete Author
-          </button>
-        </form>
+  <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-8">
+    <form action="/users/{{ user.id }}/movies" method="GET" class="flex flex-col sm:flex-row gap-4 items-end sm:items-center">
+      <div class="flex-grow w-full sm:w-auto">
+        <label for="search" class="block text-sm font-medium text-slate-700 mb-1">Search Catalog</label>
+        <input type="text" name="search" id="search" placeholder="Search by Title..."
+               value="{{ request.args.get('search', '') }}"
+               class="w-full border border-slate-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
       </div>
-    </div>
+      <div class="w-full sm:w-48">
+        <label for="sort" class="block text-sm font-medium text-slate-700 mb-1">Sort by</label>
+        <select name="sort" id="sort" class="w-full border border-slate-300 rounded-md px-4 py-2 bg-white focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer">
+          <option value="title" {% if request.args.get('sort') == 'title' %}selected{% endif %}>Movie Title</option>
+        </select>
+      </div>
+      <div class="flex gap-2 w-full sm:w-auto">
+        <button type="submit" class="bg-slate-800 hover:bg-slate-700 text-white px-6 py-2 rounded-md font-medium transition-colors w-full sm:w-auto shadow-sm">
+          Search
+        </button>
+        {% if request.args.get('search') or request.args.get('sort') %}
+          <a href="/users/{{ user.id }}/movies" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-md font-medium transition-colors text-center w-full sm:w-auto">
+            Clear
+          </a>
+        {% endif %}
+      </div>
+    </form>
   </div>
-  {% else %}
-    <div class="col-span-full bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
-      <div class="text-4xl mb-4">🎬</div>
-      {% if request.args.get('search') %}
-        <h3 class="text-lg font-bold text-slate-800 mb-2">No results found</h3>
-        <p class="text-slate-500">We couldn't find anything matching "<strong>{{ request.args.get('search') }}</strong>".</p>
-      {% else %}
-        <h3 class="text-lg font-bold text-slate-800 mb-2">Your library is empty</h3>
-        <p class="text-slate-500 mb-6">It looks like you haven't added any movies yet.</p>
-        <a href="/add_movie" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-md font-medium transition-colors inline-block">
-          Add Your First Movie
-        </a>
-      {% endif %}
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    {% for movie in movies %}
+    <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg group">
+
+      <a href="{{ movie.imdb_url if movie.imdb_url else '#' }}"
+         target="_blank"
+         class="w-full relative overflow-hidden bg-slate-800 flex items-center justify-center aspect-[2/3] flex-shrink-0">
+
+        {% if movie.poster %}
+          <img src="{{ movie.poster }}"
+               alt="Poster of {{ movie.title }}"
+               class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
+        {% else %}
+          <span class="text-slate-400 text-6xl">🎬</span>
+        {% endif %}
+
+        {% if movie.imdb_url %}
+        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
+          <span class="bg-yellow-500 text-black text-sm font-bold px-3 py-1.5 rounded shadow-lg flex items-center gap-2">
+            Open in IMDb ↗
+          </span>
+        </div>
+        {% endif %}
+      </a>
+
+      <div class="p-4 flex flex-col flex-grow">
+
+        <div class="flex justify-between items-start gap-2 mb-2">
+          <h3 class="text-xl font-bold text-slate-900 leading-tight line-clamp-2" title="{{ movie.title }}">
+            {{ movie.title }}
+          </h3>
+
+          <div class="bg-yellow-100 text-yellow-800 border border-yellow-300 text-sm font-bold px-2 py-0.5 rounded flex items-center flex-shrink-0">
+            ⭐ {{ movie.rating if movie.rating else '-.-' }}
+          </div>
+        </div>
+
+        <div class="text-sm text-slate-600 mb-4 space-y-1">
+          <p class="truncate"><strong class="text-slate-800">Director:</strong> {{ movie.director if movie.director else 'Unknown' }}</p>
+          <p><strong class="text-slate-800">Year:</strong> {{ movie.year if movie.year else 'Unknown' }}</p>
+        </div>
+
+        <div class="mt-auto pt-3 border-t border-slate-100 flex gap-2">
+
+          <a href="/users/{{ user.id }}/movies/{{ movie.id }}/update"
+             class="flex-1 text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-3 py-2 rounded transition-colors text-center">
+            Update
+          </a>
+
+          <form action="/users/{{ user.id }}/movies/{{ movie.id }}/delete" method="POST" class="flex-1">
+            <button type="submit"
+                    class="w-full text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-2 rounded transition-colors text-center"
+                    onclick="return confirm('Do you really want to delete this movie?');">
+              Delete
+            </button>
+          </form>
+
+        </div>
+      </div>
+
     </div>
-  {% endfor %}
-</div>
+    {% else %}
+
+      <div class="col-span-full bg-white rounded-xl shadow-sm border border-slate-200 p-16 text-center">
+        <div class="text-6xl mb-6">🍿</div>
+        {% if request.args.get('search') %}
+          <h3 class="text-xl font-bold text-slate-800 mb-2">No results found</h3>
+          <p class="text-slate-500">We couldn't find anything matching "<strong>{{ request.args.get('search') }}</strong>".</p>
+        {% else %}
+          <h3 class="text-xl font-bold text-slate-800 mb-2">No movies here</h3>
+          <p class="text-slate-500 mb-6">This list is empty. Use the input field in the top navigation bar to add a new movie!</p>
+        {% endif %}
+      </div>
+
+    {% endfor %}
+  </div>
 
 {% endblock %}
