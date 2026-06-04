@@ -17,12 +17,14 @@ class Movie(db.Model):
     director = db.Column(db.String(100), nullable=True)
     year = db.Column(db.Integer, nullable=True)
     poster = db.Column(db.String(100), nullable=True)
-    rating = db.Column(db.Float, nullable=True)
     imdb_url = db.Column(db.String(100), nullable=True)
 
 
 class UserMovies(db.Model):
     __tablename__ = 'user-movies'
+
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    rating = db.Column(db.Float, nullable=True) # for individual movie rating
+

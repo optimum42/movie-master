@@ -1,9 +1,8 @@
 import os
 from dotenv import load_dotenv
 from flask import Flask, request, render_template, redirect, url_for, flash
-from sqlalchemy import or_
 from data_manager import DataManager
-from models import db, Movie, User
+from models import db, User
 
 load_dotenv()
 
@@ -12,12 +11,12 @@ app = Flask(__name__)
 app.secret_key = os.getenv("APP_SECRET_KEY")
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(basedir, 'data/movies.db')}"
+app.config['SQLALCHEMY_DATABASE_URI'] = \
+    f"sqlite:///{os.path.join(basedir, 'data/movies.db')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db.init_app(app)  # Link the database and the app. This is the reason you need to import db from models
-
-data_manager = DataManager() # Create an object of your DataManager class
+db.init_app(app)  # Link the database and the app.
+data_manager = DataManager()
 
 
 @app.route('/')
@@ -28,14 +27,8 @@ def index():
 
 @app.route('/users/<int:user_id>/movies')
 def get_movies(user_id):
-    # 1. Fetch the user (still needed for the template: user.name, user.id)
-    # get_or_404 is useful here in case someone types an invalid ID into the URL
-    user = User.query.get_or_404(user_id)
-
-    # 2. Load the movies EXCLUSIVELY via the DataManager
+    user = data_manager.get_user_by_id(user_id)
     movies = data_manager.get_movies(user_id)
-
-    # 3. Render the template with the data
     return render_template('movies.html', movies=movies, user=user)
 
 
@@ -61,9 +54,7 @@ def add_movie(user_id):
 @app.route('/users', methods=['POST'])
 def add_user():
     user_name = request.form.get('name')
-
-    existing_user = User.query.filter_by(name=user_name).first()
-
+    existing_user = data_manager.get_user_by_name(user_name)
     if existing_user:
         # Add "error" as a category
         flash(
@@ -72,7 +63,8 @@ def add_user():
     else:
         data_manager.create_user(user_name)
         # Add "success" as a category
-        flash(f"User '{user_name}' was added successfully.", "success")
+        flash(f"User '{user_name}' was added successfully.",
+              "success")
 
     return redirect(url_for('index'))
 
@@ -85,7 +77,8 @@ def delete_movie(user_id, movie_id):
         # (Deleting the link and cleaning up orphaned movies if necessary)
         data_manager.delete_movie(user_id, movie_id)
 
-        flash("The movie was successfully removed from the list.", "success")
+        flash("The movie was successfully removed from the list.",
+              "success")
     except Exception as e:
         # In case a database error occurs (e.g., connection issues)
         db.session.rollback()
@@ -98,9 +91,9 @@ def delete_movie(user_id, movie_id):
 @app.route('/users/<int:user_id>/movies/<int:movie_id>/update',
            methods=['GET', 'POST'])
 def update_movie(user_id, movie_id):
-    # Load movie and user from the database
-    movie = Movie.query.get_or_404(movie_id)
-    user = User.query.get_or_404(user_id)
+    # Load user movie link for rating
+    movie = data_manager.get_movie(movie_id)
+    link = data_manager.get_user_movie_link(movie_id, user_id)
 
     if request.method == 'POST':
         # If the form was submitted:
@@ -110,8 +103,7 @@ def update_movie(user_id, movie_id):
             # Convert string to float
             rating_val = float(new_rating) if new_rating else None
 
-            # Use DataManager to update the 'rating' attribute
-            data_manager.update_movie(movie_id, rating=rating_val)
+            data_manager.update_movie(movie_id, user_id, rating_val)
 
             flash(
                 f"The rating for '{movie.title}' was updated successfully!",
@@ -126,13 +118,14 @@ def update_movie(user_id, movie_id):
             flash(f"Error: {str(e)}", "error")
 
     # If it's a GET request: Render the HTML form
-    return render_template('update_movie.html', movie=movie, user=user)
+    return render_template('update_movie.html',
+                           movie=movie, user_id=user_id, rating=link.rating)
 
 
 if __name__ == '__main__':
     # Only run once on empty database
-    # with app.app_context():
-    #    db.drop_all()
-    #    db.create_all()
+    with app.app_context():
+#       db.drop_all()
+       db.create_all()
 
     app.run(debug=True, host='0.0.0.0', port=5001)
