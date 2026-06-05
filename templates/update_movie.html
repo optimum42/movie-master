@@ -3,7 +3,7 @@
 {% block title %}Update Rating - {{ movie.title }}{% endblock %}
 
 {% block nav_buttons %}
-  <a href="{{ url_for('index') }}" class="bg-indigo-500 hover:bg-indigo-400 px-4 py-2 rounded transition-colors text-sm font-medium">← Back to Movies</a>
+  <a href="{{ url_for('show_movies', user_id=user_id) }}" class="bg-indigo-500 hover:bg-indigo-400 px-4 py-2 rounded transition-colors text-sm font-medium">← Back to Movies</a>
 {% endblock %}
 
 {% block content %}
